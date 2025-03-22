@@ -2,7 +2,9 @@ package com.example.study3.controller;
 
 
 import com.example.study3.domain.Member;
+import com.example.study3.dto.ErrorResponse;
 import com.example.study3.dto.MemberDto;
+import com.example.study3.dto.SuccessResponse;
 import com.example.study3.repository.MemberRepository;
 import com.example.study3.security.jwt.JwtTokenProvider;
 import org.springframework.http.HttpStatus;
@@ -34,10 +36,13 @@ public class AuthController {
         Member member = memberRepository.findByLoginId(dto.getLoginId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 아이디입니다"));
         if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 틀렸습니다");
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("비밀번호가 틀렸습니다"));
         }
 
         String token = jwtTokenProvider.createToken(member.getLoginId());
-        return ResponseEntity.ok(Collections.singletonMap("token", token));
+        return ResponseEntity
+                .ok(new SuccessResponse(token));
     }
 }
