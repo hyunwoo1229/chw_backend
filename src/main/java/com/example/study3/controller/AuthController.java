@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -33,8 +34,16 @@ public class AuthController {
 
     @PostMapping("login")
     public ResponseEntity<?> login(@RequestBody MemberDto dto) {
-        Member member = memberRepository.findByLoginId(dto.getLoginId())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 아이디입니다"));
+        Optional<Member> optionalMember = memberRepository.findByLoginId(dto.getLoginId());
+
+        if (!optionalMember.isPresent()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse("존재하지 않는 아이디입니다"));
+        }
+
+        Member member = optionalMember.get();
+
         if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
