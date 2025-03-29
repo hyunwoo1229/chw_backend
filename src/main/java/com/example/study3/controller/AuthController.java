@@ -7,6 +7,7 @@ import com.example.study3.dto.MemberDto;
 import com.example.study3.dto.SuccessResponse;
 import com.example.study3.repository.MemberRepository;
 import com.example.study3.security.jwt.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,5 +54,11 @@ public class AuthController {
         String token = jwtTokenProvider.createToken(member.getLoginId());
         return ResponseEntity
                 .ok(new SuccessResponse(token));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        return ResponseEntity.ok(new SuccessResponse("로그아웃 완료"));
     }
 }
