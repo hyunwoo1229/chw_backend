@@ -12,7 +12,8 @@ import javax.crypto.SecretKey;
 @Component
 
 public class JwtTokenProvider {
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final String SECRET = "내가정의한엄청복잡하고긴시크릿키123!@#@";
+    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
     private final long EXPIRATION_MS = 3600000;
 
     public String createToken(String loginId) {
