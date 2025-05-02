@@ -31,7 +31,7 @@ public class SunoService {
     public String generateMusic(SunoRequest request) {
 
         String taskId = UUID.randomUUID().toString();
-        String callbackUrl = "https://4a8a-121-165-35-251.ngrok-free.app/api/suno/callback?taskId=" + taskId;
+        String callbackUrl = "https://f56b-121-165-35-251.ngrok-free.app/api/suno/callback?taskId=" + taskId;
 
         try{
             String postUrl = "https://apibox.erweima.ai/api/v1/generate";
