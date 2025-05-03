@@ -72,7 +72,7 @@ public class BoardService {
 
         String loginId = null;
         boolean isAuthor = false;
-        if(auth != null && auth.isAuthenticated() && "anonymousUser".equals(auth.getPrincipal())) {
+        if(auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             loginId = (String) auth.getPrincipal();
             isAuthor = board.getMember().getLoginId().equals(loginId);
         }
@@ -120,5 +120,26 @@ public class BoardService {
         }
 
         boardRepository.delete(board);
+    }
+
+    //마이페이지
+    public List<BoardResponseDto> getBoardsByLoginId(Authentication auth) {
+        String loginId = (String) auth.getPrincipal();
+
+        Member member = memberRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
+
+        return boardRepository.findByMember(member).stream().map(board ->{
+            BoardResponseDto dto = new BoardResponseDto();
+            dto.setId(board.getId());
+            dto.setTitle(board.getTitle());
+            dto.setCreatedAt(board.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            dto.setAudioUrl(board.getMusic().getAudioUrl());
+            dto.setImageUrl(board.getMusic().getImageUrl());
+            dto.setAuthorName(board.getMember().getName());
+            dto.setViews(board.getViews());
+            dto.setAuthor(true);
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

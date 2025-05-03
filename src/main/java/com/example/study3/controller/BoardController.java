@@ -51,4 +51,9 @@ public class BoardController {
         boardService.deleteBoard(id, authentication);
         return ResponseEntity.ok(new SuccessResponse("게시글 삭제 완료"));
     }
+
+    @GetMapping("/my")
+    public ResponseEntity<List<BoardResponseDto>> getMyBoards(Authentication authentication) {
+        return ResponseEntity.ok(boardService.getBoardsByLoginId(authentication));
+    }
 }
