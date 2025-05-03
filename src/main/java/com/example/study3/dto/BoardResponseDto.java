@@ -16,4 +16,5 @@ public class BoardResponseDto {
     private String audioUrl;
     private String imageUrl;
     private boolean author;
+    private int views;
 }

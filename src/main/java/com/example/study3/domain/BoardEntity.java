@@ -25,6 +25,9 @@ public class BoardEntity {
 
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private int views = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;

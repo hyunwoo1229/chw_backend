@@ -33,9 +33,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // 나중에 삭제
-                       // .requestMatchers("/api/login", "/api/register").permitAll()
-                        //.anyRequest().authenticated()
+                        //.anyRequest().permitAll()
+                        .requestMatchers("/api/chat").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(sesson -> sesson.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

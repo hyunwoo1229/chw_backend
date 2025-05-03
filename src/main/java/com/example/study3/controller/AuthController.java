@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -52,8 +54,11 @@ public class AuthController {
         }
 
         String token = jwtTokenProvider.createToken(member.getLoginId());
-        return ResponseEntity
-                .ok(new SuccessResponse(token));
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("token", token);
+        result.put("name", member.getName());
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/logout")

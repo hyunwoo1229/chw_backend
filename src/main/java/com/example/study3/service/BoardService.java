@@ -57,6 +57,7 @@ public class BoardService {
             dto.setAudioUrl(boardEntity.getMusic().getAudioUrl());
             dto.setImageUrl(boardEntity.getMusic().getImageUrl());
             dto.setAuthor(false);
+            dto.setViews(boardEntity.getViews());
             return dto;
         }).collect(Collectors.toList());
     }
@@ -66,8 +67,16 @@ public class BoardService {
         BoardEntity board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
 
-        String loginId = (String) auth.getPrincipal();
-        boolean isAuthor = board.getMember().getLoginId().equals(loginId);
+        board.setViews(board.getViews() + 1);
+        boardRepository.save(board);
+
+        String loginId = null;
+        boolean isAuthor = false;
+        if(auth != null && auth.isAuthenticated() && "anonymousUser".equals(auth.getPrincipal())) {
+            loginId = (String) auth.getPrincipal();
+            isAuthor = board.getMember().getLoginId().equals(loginId);
+        }
+
 
         BoardResponseDto dto = new BoardResponseDto();
         dto.setId(board.getId());
@@ -78,6 +87,7 @@ public class BoardService {
         dto.setAudioUrl(board.getMusic().getAudioUrl());
         dto.setImageUrl(board.getMusic().getImageUrl());
         dto.setAuthor(isAuthor);
+        dto.setViews(board.getViews());
         return dto;
     }
 
