@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "music_entity")
 public class MusicEntity {
     @Id
-    @Column(name = "music_id")
+    @Column(name = "music_id", unique = true, nullable = false)
     private String id;
 
     private String title;
@@ -23,6 +23,7 @@ public class MusicEntity {
 
     @Column(name = "taskid")
     private String taskId;
+
 
 
 

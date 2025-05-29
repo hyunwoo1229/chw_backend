@@ -35,7 +35,7 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping("login")
+    @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody MemberDto dto) {
         Optional<Member> optionalMember = memberRepository.findByLoginId(dto.getLoginId());
 

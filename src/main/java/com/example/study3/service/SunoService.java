@@ -24,18 +24,21 @@ public class SunoService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+
     public SunoService(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
+    // 음악 생성 요청 처리 매서드: SunoRequest 객체를 받아 API 요청을 보내고 taksId 반환
     public String generateMusic(SunoRequest request) {
 
-        String taskId = UUID.randomUUID().toString();
-        String callbackUrl = "https://f56b-121-165-35-251.ngrok-free.app/api/suno/callback?taskId=" + taskId;
+        String taskId = UUID.randomUUID().toString(); // 고유한 taskId 생성
+        String callbackUrl = "https://78f5-121-165-35-251.ngrok-free.app/api/suno/callback?taskId=" + taskId;  // 콜백 URL에 taskId를 포함하여 생성
 
         try{
             String postUrl = "https://apibox.erweima.ai/api/v1/generate";
 
+            // HTTP 헤더 설정: JSON 타입 + Bearer 인증
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(apiKey);
@@ -50,36 +53,17 @@ public class SunoService {
             body.put("negativeTags", request.getNegativeTags());
             body.put("callBackUrl", callbackUrl);
 
-            // 🔍 실제 Suno로 보내질 JSON 출력
-            System.out.println("\n================ [Suno API 전송 내용] ================");
-            System.out.println("POST URL: " + postUrl);
-            System.out.println("Headers: " + headers);
-            System.out.println("Body: " + body);
-            System.out.println("====================================================\n");
-
-            /*
-            if (false) {
-                System.out.println("🔧 [TEST_MODE] Suno API 호출 생략됨");
-                System.out.println("📦 body = " + body);
-                return taskId;
-            }
-
-             */
-
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(postUrl, entity, String.class);
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(response.getBody());
+
             return taskId;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
-
-
-
-
 
     }
 }

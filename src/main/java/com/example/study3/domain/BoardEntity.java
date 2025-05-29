@@ -33,7 +33,7 @@ public class BoardEntity {
     private Member member;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "music_id")
+    @JoinColumn(name = "music_id", referencedColumnName = "music_id")
     private MusicEntity music;
 
     @PrePersist

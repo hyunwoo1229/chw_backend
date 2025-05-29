@@ -19,5 +19,8 @@ public class Member {
     private String loginId;
     private String password;
     private String name;
+    private String provider;
+
+    private String youtubeAccessToken;
 
 }

@@ -17,9 +17,24 @@ public class MusicService {
     }
 
 
-    public void handleSunoCallback(String taskId, Map<String, Object> callbackData) {
-        System.out.println("🎶 [MusicService] 콜백 처리 시작");
+    public void handleSunoCallback(String taskId, Map<String, Object> callbackData) { // taskId: 음악 생성 요청 시 함께 전달했던 고유 식별자, callbackData: 콜백으로 전달된 전체 JSON 데이터
 
+        /* suno에서 콜백으로 보내는 json 응답(callbackData) 형식:
+        {
+            "status": "success",
+             "data": {
+                 "data": [
+                     {
+                         "id": "abc123",
+                         "title": "봄비",
+                         "audio_url": "https://suno.com/audio1.mp3",
+                         "image_url": "https://suno.com/image1.jpg"
+                        },
+                        ...
+        ]
+     }
+    }
+         */
         Map<String, Object> data = (Map<String, Object>) callbackData.get("data");
         List<Map<String, Object>> trackList = (List<Map<String, Object>>) data.get("data");
 
@@ -38,7 +53,7 @@ public class MusicService {
                 continue;
             }
 
-
+            // MusicEntity 객체 생성 (DB에 저장할 모델)
             MusicEntity music = new MusicEntity(
                     id,
                     (String) track.get("title"),
@@ -50,10 +65,9 @@ public class MusicService {
             System.out.println("💾 저장 완료 (taskId: " + taskId + "): " + music.getTitle());
         }
 
-         System.out.println("저장 종료");
     }
 
-    public List<MusicEntity> findByTaksId(String taksId) {
+    public List<MusicEntity> findByTaskId(String taksId) {
         return musicRepository.findByTaskIdAndAudioUrlIsNotNull(taksId);
     }
 }

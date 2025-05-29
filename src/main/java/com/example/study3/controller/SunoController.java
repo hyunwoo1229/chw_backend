@@ -38,7 +38,7 @@ public class SunoController {
 
     @GetMapping("music-list")
     public ResponseEntity<List<MusicEntity>> getMusicByTask(@RequestParam String taskId) {
-        List<MusicEntity> musicList = musicService.findByTaksId(taskId);
+        List<MusicEntity> musicList = musicService.findByTaskId(taskId);
         return ResponseEntity.ok(musicList);
     }
 

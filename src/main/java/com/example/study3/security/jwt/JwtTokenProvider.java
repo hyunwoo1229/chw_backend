@@ -41,6 +41,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (Exception e) {
+            System.out.println("❌ validateToken() 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             return false;
         }
     }
@@ -51,5 +52,16 @@ public class JwtTokenProvider {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    public Claims parseClaims(String token) {
+        try {
+            return Jwts.parser()
+                    .setSigningKey(key) // secretKey는 기존 서명 키
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("JWT 파싱 실패: " + e.getMessage());
+        }
     }
 }
