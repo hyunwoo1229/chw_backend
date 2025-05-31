@@ -8,6 +8,7 @@ import com.example.study3.dto.BoardResponseDto;
 import com.example.study3.repository.BoardRepository;
 import com.example.study3.repository.MemberRepository;
 import com.example.study3.repository.MusicRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -16,17 +17,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+
 public class BoardService {
 
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
     private final MusicRepository musicRepository;
-
-    public BoardService(BoardRepository boardRepository, MemberRepository memberRepository, MusicRepository musicRepository) {
-        this.boardRepository = boardRepository;
-        this.memberRepository = memberRepository;
-        this.musicRepository = musicRepository;
-    }
 
     public void createBoard(BoardRequestDto dto, Authentication auth) {
         String loginId = (String) auth.getPrincipal();

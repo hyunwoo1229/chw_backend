@@ -1,20 +1,30 @@
 package com.example.study3.security.jwt;
 
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
-
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
-import javax.crypto.SecretKey;
+
 
 @Component
 
 public class JwtTokenProvider {
-    private final String SECRET = "내가정의한엄청복잡하고긴시크릿키123!@#@";
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+
+    @Value("${keySecret}")
+    private String keySecret;
     private final long EXPIRATION_MS = 3600000;
+    private Key key;
+
+    @PostConstruct
+    protected void init() {
+        byte[] secretBytes = Base64.getEncoder().encode(keySecret.getBytes());
+        this.key = Keys.hmacShaKeyFor(secretBytes);
+    }
 
     public String createToken(String loginId) {
         return Jwts.builder()
@@ -41,7 +51,6 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (Exception e) {
-            System.out.println("❌ validateToken() 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             return false;
         }
     }

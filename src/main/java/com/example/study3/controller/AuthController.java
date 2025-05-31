@@ -7,7 +7,9 @@ import com.example.study3.dto.MemberDto;
 import com.example.study3.dto.SuccessResponse;
 import com.example.study3.repository.MemberRepository;
 import com.example.study3.security.jwt.JwtTokenProvider;
+import com.example.study3.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,48 +24,19 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
 
 public class AuthController {
-    private final MemberRepository memberRepository;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    public AuthController(MemberRepository memberRepository, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
-        this.memberRepository = memberRepository;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody MemberDto dto) {
-        Optional<Member> optionalMember = memberRepository.findByLoginId(dto.getLoginId());
-
-        if (!optionalMember.isPresent()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponse("존재하지 않는 아이디입니다"));
-        }
-
-        Member member = optionalMember.get();
-
-        if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponse("비밀번호가 틀렸습니다"));
-        }
-
-        String token = jwtTokenProvider.createToken(member.getLoginId());
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("token", token);
-        result.put("name", member.getName());
-        return ResponseEntity.ok(result);
+        return authService.login(dto);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        return ResponseEntity.ok(new SuccessResponse("로그아웃 완료"));
+        return authService.logout(request);
     }
 }

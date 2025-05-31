@@ -3,6 +3,7 @@ package com.example.study3.service;
 import com.example.study3.dto.SunoRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,17 +18,12 @@ import java.util.UUID;
 
 
 @Service
+
 public class SunoService {
-    private final ObjectMapper objectMapper;
     @Value("${suno.api.key}")
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
-
-
-    public SunoService(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     // 음악 생성 요청 처리 매서드: SunoRequest 객체를 받아 API 요청을 보내고 taksId 반환
     public String generateMusic(SunoRequest request) {

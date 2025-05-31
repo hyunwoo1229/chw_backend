@@ -8,14 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class MusicService {
+@RequiredArgsConstructor
+
+public class SunoResultService {
 
     private final MusicRepository musicRepository;
-
-    public MusicService(MusicRepository musicRepository) {
-        this.musicRepository = musicRepository;
-    }
-
 
     public void handleSunoCallback(String taskId, Map<String, Object> callbackData) { // taskId: 음악 생성 요청 시 함께 전달했던 고유 식별자, callbackData: 콜백으로 전달된 전체 JSON 데이터
 
@@ -43,13 +40,7 @@ public class MusicService {
             String audioUrl = (String) track.get("audio_url");
             String id = (String) track.get("id");
 
-            if(audioUrl == null || audioUrl.isBlank()){
-                System.out.println("🚫 audio_url 없음 → 저장하지 않음");
-                continue;
-            }
-
-            if(musicRepository.existsByAudioUrl(audioUrl)){
-                System.out.println("🚫 중복된 audio_url → 저장하지 않음: " + audioUrl);
+            if(audioUrl == null || audioUrl.isBlank() || musicRepository.existsByAudioUrl(audioUrl)) {
                 continue;
             }
 
@@ -62,7 +53,6 @@ public class MusicService {
             );
             music.setTaskId(taskId);
             musicRepository.save(music);
-            System.out.println("💾 저장 완료 (taskId: " + taskId + "): " + music.getTitle());
         }
 
     }

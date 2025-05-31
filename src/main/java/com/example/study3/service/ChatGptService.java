@@ -20,16 +20,14 @@ import java.util.stream.Collectors;
 public class ChatGptService {
 
     private final SunoService sunoService;
-    @Value("${openai.api.key}")
-    private String openaiApiKey;
 
     private final WebClient webClient;
 
     // 생성자: API 키와 SunoService 를 받아 WebClient 를 초기화
-    public ChatGptService(@Value("${openai.api.key}") String apiKey, SunoService sunoService){
+    public ChatGptService(@Value("${openai.api.key}") String openaiApiKey, SunoService sunoService){
         this.webClient = WebClient.builder()
                 .baseUrl("https://api.openai.com/v1/chat/completions")
-                .defaultHeader("Authorization", "Bearer " + apiKey)
+                .defaultHeader("Authorization", "Bearer " + openaiApiKey)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
         this.sunoService = sunoService;

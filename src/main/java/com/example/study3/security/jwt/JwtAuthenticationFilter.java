@@ -30,14 +30,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException{
         String token = resolveToken(request);
-        System.out.println("📦 전달된 JWT 토큰: " + token); //테스트용
 
         if(token != null && jwtTokenProvider.validateToken(token)) {
             String loginId = jwtTokenProvider.getLoginId(token);
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(loginId, null, List.of());
             SecurityContextHolder.getContext().setAuthentication(auth);
-        }else {
-            System.out.println("❌ 인증 실패 or 토큰 없음"); //테스트용
         }
         filterChain.doFilter(request, response);
     }
