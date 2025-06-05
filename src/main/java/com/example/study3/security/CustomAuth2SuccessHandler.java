@@ -52,11 +52,25 @@ public class CustomAuth2SuccessHandler implements AuthenticationSuccessHandler {
             newMember.setName(name);
             newMember.setPassword(""); // 소셜 로그인은 비밀번호 필요 없음
             newMember.setProvider(provider);
+            newMember.setAge(null);
+            newMember.setGender(null);
+            newMember.setCountry(null);
             return memberRepository.save(newMember);
         });
 
         // JWT 토큰 생성
         String token = jwtTokenProvider.createToken(loginId);
+
+        if(user.getAge() == null || user.getGender() == null || user.getCountry() == null) {
+            String redirectUrl = UriComponentsBuilder
+                    .fromUriString("http://localhost:5173/social-extra")
+                    .queryParam("token", token)  // 여기에 token 추가
+                    .queryParam("name", URLEncoder.encode(user.getName(), StandardCharsets.UTF_8))
+                    .build()
+                    .toUriString();
+            response.sendRedirect(redirectUrl);
+            return;
+        }
 
         // 리다이렉트할 URL (프론트에 토큰 전달)
         String redirectUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/oauth-success")
@@ -70,16 +84,35 @@ public class CustomAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private String extractLoginId(OAuth2User oAuth2User, String provider) {
         if ("google".equals(provider)) {
-            return oAuth2User.getAttribute("email");
-        } else if ("naver".equals(provider)) {
-            Map<String, Object> response = oAuth2User.getAttribute("response");
-            return (String) response.get("email");
-        } else if ("kakao".equals(provider)) {
-            Map<String, Object> account = oAuth2User.getAttribute("kakao_account");
-            return (String) account.get("email");
+            String email = oAuth2User.getAttribute("email");
+            return "google_" + email;
         }
-        return "unknown";
+
+        if ("naver".equals(provider)) {
+            Map<String, Object> response = oAuth2User.getAttribute("response");
+            String email = (String) response.get("email"); // ✅ 제대로 꺼냄
+            if (email != null) {
+                return "naver_" + email;
+            } else {
+                return "naver_" + response.get("id"); // ✅ fallback
+            }
+        }
+
+        if ("kakao".equals(provider)) {
+            Map<String, Object> account = oAuth2User.getAttribute("kakao_account");
+            String email = (String) account.get("email");
+            if (email != null) {
+                return "kakao_" + email;
+            } else {
+                Map<String, Object> profile = (Map<String, Object>) account.get("profile");
+                String nickname = (String) profile.get("nickname");
+                return "kakao_" + nickname; // ✅ fallback
+            }
+        }
+
+        return provider + "_unknown";
     }
+
 
     private String extractName(OAuth2User oAuth2User, String provider) {
         if ("google".equals(provider)) {

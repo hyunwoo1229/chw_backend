@@ -30,7 +30,9 @@ public class MemberService {
         member.setPassword(passwordEncoder.encode(dto.getPassword()));
         member.setName(dto.getName());
         member.setProvider("form");
-
+        member.setAge(dto.getAge());
+        member.setGender(dto.getGender());
+        member.setCountry(dto.getCountry());
         memberRepository.save(member);
 
         return ResponseEntity

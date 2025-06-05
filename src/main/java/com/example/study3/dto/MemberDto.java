@@ -10,4 +10,7 @@ public class MemberDto {
     private String loginId;
     private String password;
     private String name;
+    private Integer age;
+    private String gender;
+    private String country;
 }

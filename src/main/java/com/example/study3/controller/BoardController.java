@@ -41,34 +41,40 @@ public class BoardController {
     private final YoutubeUploadService youtubeUploadService;
     private final MemberRepository memberRepository;
 
+    //게시물 생성
     @PostMapping
     public ResponseEntity<SuccessResponse> createboard(@RequestBody BoardRequestDto dto, Authentication authentication) {
         boardService.createBoard(dto, authentication);
         return ResponseEntity.ok(new SuccessResponse("게시글 등록 완료"));
     }
 
+    //전체 게시물 조회
     @GetMapping
     public ResponseEntity<List<BoardResponseDto>> getAllBoards() {
         return ResponseEntity.ok(boardService.getAllBoards());
     }
 
+    //하나의 게시물 자세히 보기
     @GetMapping("/{id}")
     public ResponseEntity<BoardResponseDto> getBoardDetail(@PathVariable Long id, Authentication authentication) {
         return ResponseEntity.ok(boardService.getBoardDetail(id, authentication));
     }
 
+    //게시물 수정
     @PutMapping("/{id}")
     public ResponseEntity<SuccessResponse> updateBoard(@PathVariable Long id, @RequestBody BoardRequestDto dto, Authentication authentication) {
         boardService.updateBoard(id, dto, authentication);
         return ResponseEntity.ok(new SuccessResponse("게시글 수정 완료"));
     }
 
+    //게시물 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<SuccessResponse> deleteBoard(@PathVariable Long id, Authentication authentication) {
         boardService.deleteBoard(id, authentication);
         return ResponseEntity.ok(new SuccessResponse("게시글 삭제 완료"));
     }
 
+    //마이페이지
     @GetMapping("/my")
     public ResponseEntity<List<BoardResponseDto>> getMyBoards(Authentication authentication) {
         return ResponseEntity.ok(boardService.getBoardsByLoginId(authentication));

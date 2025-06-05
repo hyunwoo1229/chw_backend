@@ -30,11 +30,13 @@ import java.util.Optional;
 public class AuthController {
     private final AuthService authService;
 
+    //로그인
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody MemberDto dto) {
         return authService.login(dto);
     }
 
+    //로그아웃
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
         return authService.logout(request);

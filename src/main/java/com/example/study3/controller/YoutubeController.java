@@ -20,6 +20,7 @@ public class YoutubeController {
 
     private final YoutubeService youtubeService;
 
+    // 유튜브 계정 연결을 위한 Google OAuth 로그인 URL 생성 및 리디렉션
     @GetMapping("/connect")
     public void connectYoutube(@RequestParam String token, HttpServletResponse response) throws IOException {
         try {
@@ -31,6 +32,7 @@ public class YoutubeController {
         }
     }
 
+    // 구글에서 authorization code를 전달받아 access token 교환을 시작하는 콜백 핸들러
     @GetMapping("/oauth2/callback")
     public void handleYoutubeCallback(@RequestParam String code, @RequestParam String state, HttpServletResponse response) throws IOException {
         try {
@@ -43,6 +45,7 @@ public class YoutubeController {
         }
     }
 
+    //유튜브 업로드
     @PostMapping("/{id}")
     public ResponseEntity<?> uploadToYoutube(@PathVariable Long id, Authentication authentication) {
         try {

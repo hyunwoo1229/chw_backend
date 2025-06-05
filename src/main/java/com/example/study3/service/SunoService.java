@@ -29,7 +29,7 @@ public class SunoService {
     public String generateMusic(SunoRequest request) {
 
         String taskId = UUID.randomUUID().toString(); // 고유한 taskId 생성
-        String callbackUrl = "https://78f5-121-165-35-251.ngrok-free.app/api/suno/callback?taskId=" + taskId;  // 콜백 URL에 taskId를 포함하여 생성
+        String callbackUrl = "https://3eba-210-103-127-19.ngrok-free.app/api/suno/callback?taskId=" + taskId;  // 콜백 URL에 taskId를 포함하여 생성
 
         try{
             String postUrl = "https://apibox.erweima.ai/api/v1/generate";
@@ -45,7 +45,7 @@ public class SunoService {
             body.put("style", request.getStyle());
             body.put("customMode", true);
             body.put("instrumental", false);
-            body.put("model", "V3_5");
+            body.put("model", "V4_5");
             body.put("negativeTags", request.getNegativeTags());
             body.put("callBackUrl", callbackUrl);
 

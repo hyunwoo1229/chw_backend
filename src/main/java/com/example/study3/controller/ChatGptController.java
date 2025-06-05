@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.*;
 public class ChatGptController {
     private final ChatGptService chatGptService;
 
+    //chatGpt와 대화
     @PostMapping
     public ChatResponse getchat(@RequestBody ChatRequestDto request) {
         return chatGptService.getChatGptReply(request.getMessages());
     }
 
+    //노래 만들기 버튼 누르면 suno에게 정보 요약해서 전달
     @PostMapping("/summarize")
     public ResponseEntity<?> summarizeAndGenerateMusic(@RequestBody ChatRequestDto request) {
         String taskId = chatGptService.generateSunoInfoFromChat(request.getMessages());

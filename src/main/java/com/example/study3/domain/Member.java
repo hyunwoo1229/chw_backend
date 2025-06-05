@@ -20,7 +20,8 @@ public class Member {
     private String password;
     private String name;
     private String provider;
-
     private String youtubeAccessToken;
-
+    private Integer age;
+    private String gender;
+    private String country;
 }
