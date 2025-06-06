@@ -3,6 +3,7 @@ package com.example.study3.service;
 import com.example.study3.domain.BoardEntity;
 import com.example.study3.domain.Member;
 import com.example.study3.domain.MusicEntity;
+import com.example.study3.dto.BoardCategoriesResponseDto;
 import com.example.study3.dto.BoardRequestDto;
 import com.example.study3.dto.BoardResponseDto;
 import com.example.study3.repository.BoardRepository;
@@ -44,19 +45,9 @@ public class BoardService {
 
     //게시물 목록
     public List<BoardResponseDto> getAllBoards() {
-        return boardRepository.findAll().stream().map(boardEntity -> {
-            BoardResponseDto dto = new BoardResponseDto();
-            dto.setId(boardEntity.getId());
-            dto.setTitle(boardEntity.getTitle());
-            dto.setContent(null);
-            dto.setAuthorName(boardEntity.getMember().getName());
-            dto.setCreatedAt(boardEntity.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-            dto.setAudioUrl(boardEntity.getMusic().getAudioUrl());
-            dto.setImageUrl(boardEntity.getMusic().getImageUrl());
-            dto.setAuthor(false);
-            dto.setViews(boardEntity.getViews());
-            return dto;
-        }).collect(Collectors.toList());
+        return boardRepository.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     //게시물 하나 들어가서 보기
@@ -138,5 +129,89 @@ public class BoardService {
             dto.setAuthor(true);
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    //조회순 게시물
+    public List<BoardResponseDto> getBoardsByViews() {
+        return boardRepository.findAllByOrderByViewsDesc().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    //최신순 게시물
+    public List<BoardResponseDto> getBoardsByRecent() {
+        return boardRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    //같은 나이대 게시물 조회
+    public List<BoardResponseDto> getBoardsBySameAgeRange(Integer age) {
+        if (age == null) {
+            return List.of();
+        }
+
+        int decade = (age / 10) * 10;
+        int startAge = decade;
+        int endAge = startAge + 9;
+
+        return boardRepository.findByMember_AgeBetween(startAge, endAge).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    //같은 국가 게시물 조회
+    public List<BoardResponseDto> getBoardsBySameCountry(String country) {
+        if (country == null || country.isEmpty()) {
+            return List.of();
+        }
+
+        return boardRepository.findByMember_Country(country).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    //같은 성별 게시물 조회
+    public List<BoardResponseDto> getBoardsBySameGender(String gender) {
+        if (gender == null || gender.isEmpty()) {
+            return List.of();
+        }
+
+        return boardRepository.findByMember_Gender(gender).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    //카테고리별 게시물을 한 번에 묶어서 반환
+    public BoardCategoriesResponseDto getBoardsByCategories(Integer age, String country, String gender) {
+        List<BoardResponseDto> popular   = getBoardsByViews();
+        List<BoardResponseDto> recent    = getBoardsByRecent();
+        List<BoardResponseDto> sameAge   = getBoardsBySameAgeRange(age);
+        List<BoardResponseDto> sameCountry = getBoardsBySameCountry(country);
+        List<BoardResponseDto> sameGender  = getBoardsBySameGender(gender);
+
+        return new BoardCategoriesResponseDto(popular, recent, sameAge, sameCountry, sameGender);
+    }
+
+    //BoardEntity를 BpardResponseDto로 매핑하는 공통 로직
+    private BoardResponseDto toDto(BoardEntity boardEntity) {
+        BoardResponseDto dto = new BoardResponseDto();
+        dto.setId(boardEntity.getId());
+        dto.setTitle(boardEntity.getTitle());
+        dto.setContent(null); // 필요하다면 BoardEntity.getContent()를 넣을 수 있습니다.
+        dto.setAuthorName(boardEntity.getMember().getName());
+        dto.setCreatedAt(boardEntity.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+        dto.setAudioUrl(boardEntity.getMusic().getAudioUrl());
+        dto.setImageUrl(boardEntity.getMusic().getImageUrl());
+        dto.setAuthor(false); // 인증 정보가 필요한 경우, Controller에서 별도 처리
+        dto.setViews(boardEntity.getViews());
+        return dto;
+    }
+
+    //검색
+    public List<BoardResponseDto> searchByTitle(String keyword){
+        return boardRepository.findByTitleContainingIgnoreCase(keyword).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 }
