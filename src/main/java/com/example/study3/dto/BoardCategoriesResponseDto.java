@@ -20,4 +20,5 @@ public class BoardCategoriesResponseDto {
     private List<BoardResponseDto> sameAgeBoards;     // 같은 나이대 (10대/20대/…)
     private List<BoardResponseDto> sameCountryBoards; // 같은 국가
     private List<BoardResponseDto> sameGenderBoards;  // 같은 성별
+    private List<BoardResponseDto> randomBoards; //랜덤 게시물
 }

@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,10 +45,33 @@ public class BoardService {
     }
 
     //게시물 목록
-    public List<BoardResponseDto> getAllBoards() {
-        return boardRepository.findAll().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public BoardCategoriesResponseDto getBoardsByCategories(Authentication auth) {
+        Integer age     = null;
+        String country  = null;
+        String gender   = null;
+
+        if (auth != null
+                && auth.isAuthenticated()
+                && !"anonymousUser".equals(auth.getPrincipal())) {
+
+            String loginId = (String) auth.getPrincipal();
+            Member member = memberRepository.findByLoginId(loginId)
+                    .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자입니다."));
+
+            age     = member.getAge();
+            country = member.getCountry();
+            gender  = member.getGender();
+        }
+
+        // 기존 메서드 재사용
+        List<BoardResponseDto> popular      = getBoardsByViews();
+        List<BoardResponseDto> recent       = getBoardsByRecent();
+        List<BoardResponseDto> sameAge      = getBoardsBySameAgeRange(age);
+        List<BoardResponseDto> sameCountry  = getBoardsBySameCountry(country);
+        List<BoardResponseDto> sameGender   = getBoardsBySameGender(gender);
+        List<BoardResponseDto> randomBoards = getRandomBoardsAll();
+
+        return new BoardCategoriesResponseDto(popular, recent, sameAge, sameCountry, sameGender, randomBoards);
     }
 
     //게시물 하나 들어가서 보기
@@ -65,17 +89,9 @@ public class BoardService {
             isAuthor = board.getMember().getLoginId().equals(loginId);
         }
 
-
-        BoardResponseDto dto = new BoardResponseDto();
-        dto.setId(board.getId());
-        dto.setTitle(board.getTitle());
+        BoardResponseDto dto = toDto(board);
         dto.setContent(board.getContent());
-        dto.setAuthorName(board.getMember().getName());
-        dto.setCreatedAt(board.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-        dto.setAudioUrl(board.getMusic().getAudioUrl());
-        dto.setImageUrl(board.getMusic().getImageUrl());
         dto.setAuthor(isAuthor);
-        dto.setViews(board.getViews());
         return dto;
     }
 
@@ -117,18 +133,13 @@ public class BoardService {
         Member member = memberRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다"));
 
-        return boardRepository.findByMember(member).stream().map(board ->{
-            BoardResponseDto dto = new BoardResponseDto();
-            dto.setId(board.getId());
-            dto.setTitle(board.getTitle());
-            dto.setCreatedAt(board.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-            dto.setAudioUrl(board.getMusic().getAudioUrl());
-            dto.setImageUrl(board.getMusic().getImageUrl());
-            dto.setAuthorName(board.getMember().getName());
-            dto.setViews(board.getViews());
-            dto.setAuthor(true);
-            return dto;
-        }).collect(Collectors.toList());
+        return boardRepository.findByMember(member).stream()
+                .map(board -> {
+                    BoardResponseDto dto = toDto(board);
+                    dto.setAuthor(true);           // 마이페이지이므로 항상 true
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     //조회순 게시물
@@ -147,39 +158,40 @@ public class BoardService {
 
     //같은 나이대 게시물 조회
     public List<BoardResponseDto> getBoardsBySameAgeRange(Integer age) {
-        if (age == null) {
-            return List.of();
-        }
-
-        int decade = (age / 10) * 10;
-        int startAge = decade;
-        int endAge = startAge + 9;
-
-        return boardRepository.findByMember_AgeBetween(startAge, endAge).stream()
+        if (age == null) return List.of();
+        int start = (age / 10) * 10;
+        int end   = start + 9;
+        List<BoardResponseDto> list = boardRepository
+                .findByMember_AgeBetween(start, end)
+                .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        Collections.shuffle(list);
+        return list;
     }
 
     //같은 국가 게시물 조회
     public List<BoardResponseDto> getBoardsBySameCountry(String country) {
-        if (country == null || country.isEmpty()) {
-            return List.of();
-        }
-
-        return boardRepository.findByMember_Country(country).stream()
+        if (country == null || country.isEmpty()) return List.of();
+        List<BoardResponseDto> list = boardRepository
+                .findByMember_Country(country)
+                .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        Collections.shuffle(list);
+        return list;
     }
 
     //같은 성별 게시물 조회
     public List<BoardResponseDto> getBoardsBySameGender(String gender) {
-        if (gender == null || gender.isEmpty()) {
-            return List.of();
-        }
-
-        return boardRepository.findByMember_Gender(gender).stream()
+        if (gender == null || gender.isEmpty()) return List.of();
+        List<BoardResponseDto> list = boardRepository
+                .findByMember_Gender(gender)
+                .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+        Collections.shuffle(list);
+        return list;
     }
 
     //카테고리별 게시물을 한 번에 묶어서 반환
@@ -189,8 +201,25 @@ public class BoardService {
         List<BoardResponseDto> sameAge   = getBoardsBySameAgeRange(age);
         List<BoardResponseDto> sameCountry = getBoardsBySameCountry(country);
         List<BoardResponseDto> sameGender  = getBoardsBySameGender(gender);
+        List<BoardResponseDto> randomBoards = getRandomBoardsAll();
 
-        return new BoardCategoriesResponseDto(popular, recent, sameAge, sameCountry, sameGender);
+        return new BoardCategoriesResponseDto(popular, recent, sameAge, sameCountry, sameGender, randomBoards);
+    }
+
+    //검색
+    public List<BoardResponseDto> searchByTitle(String keyword){
+        return boardRepository.findByTitleContainingIgnoreCase(keyword).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    //랜덤 게시물
+    public List<BoardResponseDto> getRandomBoardsAll() {
+        List<BoardResponseDto> all = boardRepository.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+        Collections.shuffle(all);
+        return all;
     }
 
     //BoardEntity를 BpardResponseDto로 매핑하는 공통 로직
@@ -206,12 +235,5 @@ public class BoardService {
         dto.setAuthor(false); // 인증 정보가 필요한 경우, Controller에서 별도 처리
         dto.setViews(boardEntity.getViews());
         return dto;
-    }
-
-    //검색
-    public List<BoardResponseDto> searchByTitle(String keyword){
-        return boardRepository.findByTitleContainingIgnoreCase(keyword).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
     }
 }

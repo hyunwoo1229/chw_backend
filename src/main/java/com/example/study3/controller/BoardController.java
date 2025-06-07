@@ -47,36 +47,11 @@ public class BoardController {
 
     //전체 게시물 조회
     @GetMapping
-    public ResponseEntity<BoardCategoriesResponseDto> getBoardsByCategories(
-            Authentication authentication
-    ) {
-        Integer age = null;
-        String country = null;
-        String gender = null;
-
-        // 1) 인증된 사용자(authentication) 정보가 넘어왔으면
-        //    authentication.getPrincipal()은 Spring Security가 세션(JWT)에서 꺼낸 loginId (String)이다.
-        if (authentication != null
-                && authentication.isAuthenticated()
-                && !"anonymousUser".equals(authentication.getPrincipal())) {
-
-            String loginId = (String) authentication.getPrincipal();
-
-            // 2) DB(Member 테이블)에서 해당 loginId의 회원을 꺼내 age/country/gender를 읽어 온다.
-            Member member = memberRepository.findByLoginId(loginId)
-                    .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자입니다."));
-
-            age     = member.getAge();      // DB에 저장된 실제 age
-            country = member.getCountry();  // DB에 저장된 실제 country
-            gender  = member.getGender();   // DB에 저장된 실제 gender
-        }
-
-        // 3) 서비스에서 다섯가지 필터링 로직을 실행, 나머지는 null→빈 리스트로 처리
-        BoardCategoriesResponseDto responseDto =
-                boardService.getBoardsByCategories(age, country, gender);
-
-        return ResponseEntity.ok(responseDto);
+    public ResponseEntity<BoardCategoriesResponseDto> getBoardsByCategories(Authentication authentication) {
+        BoardCategoriesResponseDto dto = boardService.getBoardsByCategories(authentication);
+        return ResponseEntity.ok(dto);
     }
+
     //하나의 게시물 자세히 보기
     @GetMapping("/{id}")
     public ResponseEntity<BoardResponseDto> getBoardDetail(@PathVariable Long id, Authentication authentication) {

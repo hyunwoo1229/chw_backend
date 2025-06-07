@@ -1,13 +1,12 @@
 package com.example.study3.service;
 
 import com.example.study3.domain.Member;
-import com.example.study3.dto.ErrorResponse;
-import com.example.study3.dto.MemberDto;
-import com.example.study3.dto.SuccessResponse;
+import com.example.study3.dto.*;
 import com.example.study3.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,5 +37,31 @@ public class MemberService {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(new SuccessResponse("회원가입 성공"));
+    }
+
+    //내 정보 조회
+    public ProfileResponseDto getProfile(Authentication auth) {
+        String loginId = (String) auth.getPrincipal();
+        Member member = memberRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("유요하지 않은 계정입니다."));
+        ProfileResponseDto dto = new ProfileResponseDto();
+        dto.setLoginId(loginId);
+        dto.setName(member.getName());
+        dto.setAge(member.getAge());
+        dto.setGender(member.getGender());
+        dto.setCountry(member.getCountry());
+        return dto;
+    }
+
+    //비밀번호 변경
+    public void changePassword(ChangePasswordRequest req, Authentication auth) {
+        String loginId = (String) auth.getPrincipal();
+        Member member = memberRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자입니다."));
+        if(!passwordEncoder.matches(req.getOldPassword(), member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+        member.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        memberRepository.save(member);
     }
 }
