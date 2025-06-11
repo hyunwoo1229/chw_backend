@@ -17,6 +17,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
+    //회원가입
     public ResponseEntity<?> register(MemberDto dto) {
         if (memberRepository.findByLoginId(dto.getLoginId()).isPresent()) {
             return ResponseEntity
@@ -50,6 +51,7 @@ public class MemberService {
         dto.setAge(member.getAge());
         dto.setGender(member.getGender());
         dto.setCountry(member.getCountry());
+        dto.setProvider(member.getProvider());
         return dto;
     }
 

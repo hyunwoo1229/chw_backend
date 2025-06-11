@@ -11,4 +11,5 @@ public class ProfileResponseDto {
     private Integer age;
     private String gender;
     private String country;
+    private String provider;
 }
