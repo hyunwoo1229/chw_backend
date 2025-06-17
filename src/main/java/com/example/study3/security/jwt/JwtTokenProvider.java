@@ -17,7 +17,8 @@ public class JwtTokenProvider {
 
     @Value("${keySecret}")
     private String keySecret;
-    private final long EXPIRATION_MS = 3600000;
+    private final long ACCESS_TOKEN_EXPIRATION_MS = 36000000L;
+    private final long REFRESH_TOKEN_EXPIRATION_MS = 1209600000L; // 2주
     private Key key;
 
     @PostConstruct
@@ -26,11 +27,19 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(secretBytes);
     }
 
-    public String createToken(String loginId) {
+    public String createAccessToken(String loginId) {
+        return createToken(loginId, ACCESS_TOKEN_EXPIRATION_MS);
+    }
+
+    public String createRefreshToken(String loginId) {
+        return createToken(loginId, REFRESH_TOKEN_EXPIRATION_MS);
+    }
+
+    private String createToken(String loginId, long expirationMs) {
         return Jwts.builder()
                 .setSubject(loginId)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
                 .compact();
     }
@@ -50,9 +59,20 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (Exception e) {
-            return false;
         }
+        // --- 어떤 종류의 예외 때문에 실패하는지 로그로 확인 ---
+        catch (SecurityException | MalformedJwtException e) {
+            System.err.println("Invalid JWT Token: " + e.getMessage());
+        } catch (ExpiredJwtException e) {
+            System.err.println("Expired JWT Token: " + e.getMessage());
+        } catch (UnsupportedJwtException e) {
+            System.err.println("Unsupported JWT Token: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            // 이 예외는 보통 토큰이 비어있거나(null) 형식이 아닐 때 발생합니다.
+            System.err.println("JWT claims string is empty: " + e.getMessage());
+        }
+        // ------------------------------------------------
+        return false;
     }
 
     public String resolveToken(HttpServletRequest request) {

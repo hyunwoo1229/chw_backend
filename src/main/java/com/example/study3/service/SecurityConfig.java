@@ -2,6 +2,7 @@ package com.example.study3.service;
 
 import com.example.study3.security.CustomAuth2SuccessHandler;
 import com.example.study3.security.jwt.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import java.util.List;
 
@@ -37,11 +39,40 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(auth -> auth
+                /*.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/chat", "/api/member/update-extra").authenticated()
                         .anyRequest().permitAll()
                 )
+                 */
+                .authorizeHttpRequests(auth -> auth
+                        // ✅ 수정: 인증이 필요한 모든 경로를 여기에 추가합니다.
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/member/register", // 회원가입 주소가 있다면 추가
+                                "/api/auth/reissue"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/api/chat/**",
+                                "/api/member/update-extra",
+                                "/api/member/profile/**",
+                                "/api/board/my",
+                                "/api/youtube/**"
+                        ).authenticated()
+                        .requestMatchers(
+                                HttpMethod.POST, "/api/board" // 게시글 생성
+                        ).authenticated()
+                        .requestMatchers(
+                                HttpMethod.PUT, "/api/board/{id}" // 게시글 수정
+                        ).authenticated()
+                        .requestMatchers(
+                                HttpMethod.DELETE, "/api/board/{id}" // 게시글 삭제
+                        ).authenticated()
+                        .anyRequest().permitAll() // ✅ 그 외 모든 요청은 허용
+                )
                 .sessionManagement(sesson -> sesson.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(
+                        (request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                ))
                 .oauth2Login(oauth -> oauth
                         .successHandler(customAuth2SuccessHandler))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

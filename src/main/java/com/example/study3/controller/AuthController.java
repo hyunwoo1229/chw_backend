@@ -41,4 +41,10 @@ public class AuthController {
     public ResponseEntity<?> logout(HttpServletRequest request) {
         return authService.logout(request);
     }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<?> reissue(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refreshToken");
+        return authService.reissue(refreshToken);
+    }
 }

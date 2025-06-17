@@ -32,11 +32,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException{
         String token = resolveToken(request);
 
-        if(token != null && jwtTokenProvider.validateToken(token)) {
-            String loginId = jwtTokenProvider.getLoginId(token);
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(loginId, null, List.of());
-            SecurityContextHolder.getContext().setAuthentication(auth);
+
+        if (token != null) { // 헤더에 토큰이 존재하는 경우
+            if (jwtTokenProvider.validateToken(token)) {
+                // 토큰이 유효하면 인증 정보 설정
+                String loginId = jwtTokenProvider.getLoginId(token);
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(loginId, null, List.of());
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            } else {
+                // 토큰이 유효하지 않은 경우 (만료 등)
+                // 401 에러를 응답하고 필터 체인을 여기서 중단
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid/Expired Token");
+                return;
+            }
         }
+
+        // 토큰이 아예 없는 경우는 그대로 필터 체인 계속 진행 (공개 API 접근 허용)
         filterChain.doFilter(request, response);
     }
 

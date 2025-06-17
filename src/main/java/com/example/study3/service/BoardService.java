@@ -9,6 +9,7 @@ import com.example.study3.dto.BoardResponseDto;
 import com.example.study3.repository.BoardRepository;
 import com.example.study3.repository.MemberRepository;
 import com.example.study3.repository.MusicRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class BoardService {
     private final MemberRepository memberRepository;
     private final MusicRepository musicRepository;
 
+    @Transactional
     public void createBoard(BoardRequestDto dto, Authentication auth) {
         String loginId = (String) auth.getPrincipal();
 
@@ -45,6 +47,7 @@ public class BoardService {
     }
 
     //게시물 목록
+    @Transactional(readOnly = true)
     public BoardCategoriesResponseDto getBoardsByCategories(Authentication auth) {
         Integer age     = null;
         String country  = null;
@@ -75,6 +78,7 @@ public class BoardService {
     }
 
     //게시물 하나 들어가서 보기
+    @Transactional
     public BoardResponseDto getBoardDetail(Long id, Authentication auth) {
         BoardEntity board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
@@ -96,7 +100,7 @@ public class BoardService {
     }
 
 
-    //게시글 수정
+    @Transactional
     public void updateBoard(Long id, BoardRequestDto dto, Authentication auth) {
         String loginId = (String) auth.getPrincipal();
 
@@ -112,7 +116,7 @@ public class BoardService {
         boardRepository.save(board);
     }
 
-    //게시글 삭제
+    @Transactional
     public void deleteBoard(Long id, Authentication auth) {
         String loginId = (String) auth.getPrincipal();
 
@@ -127,6 +131,7 @@ public class BoardService {
     }
 
     //마이페이지
+    @Transactional(readOnly = true)
     public List<BoardResponseDto> getBoardsByLoginId(Authentication auth) {
         String loginId = (String) auth.getPrincipal();
 
@@ -143,6 +148,7 @@ public class BoardService {
     }
 
     //조회순 게시물
+    @Transactional(readOnly = true)
     public List<BoardResponseDto> getBoardsByViews() {
         return boardRepository.findAllByOrderByViewsDesc().stream()
                 .map(this::toDto)
@@ -150,6 +156,7 @@ public class BoardService {
     }
 
     //최신순 게시물
+    @Transactional(readOnly = true)
     public List<BoardResponseDto> getBoardsByRecent() {
         return boardRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::toDto)
@@ -157,6 +164,7 @@ public class BoardService {
     }
 
     //같은 나이대 게시물 조회
+    @Transactional(readOnly = true)
     public List<BoardResponseDto> getBoardsBySameAgeRange(Integer age) {
         if (age == null) return List.of();
         int start = (age / 10) * 10;
@@ -171,6 +179,7 @@ public class BoardService {
     }
 
     //같은 국가 게시물 조회
+    @Transactional(readOnly = true)
     public List<BoardResponseDto> getBoardsBySameCountry(String country) {
         if (country == null || country.isEmpty()) return List.of();
         List<BoardResponseDto> list = boardRepository
@@ -183,6 +192,7 @@ public class BoardService {
     }
 
     //같은 성별 게시물 조회
+    @Transactional(readOnly = true)
     public List<BoardResponseDto> getBoardsBySameGender(String gender) {
         if (gender == null || gender.isEmpty()) return List.of();
         List<BoardResponseDto> list = boardRepository
@@ -195,6 +205,7 @@ public class BoardService {
     }
 
     //카테고리별 게시물을 한 번에 묶어서 반환
+    @Transactional(readOnly = true)
     public BoardCategoriesResponseDto getBoardsByCategories(Integer age, String country, String gender) {
         List<BoardResponseDto> popular   = getBoardsByViews();
         List<BoardResponseDto> recent    = getBoardsByRecent();
@@ -207,6 +218,7 @@ public class BoardService {
     }
 
     //검색
+    @Transactional(readOnly = true)
     public List<BoardResponseDto> searchByTitle(String keyword){
         return boardRepository.findByTitleContainingIgnoreCase(keyword).stream()
                 .map(this::toDto)
@@ -214,6 +226,7 @@ public class BoardService {
     }
 
     //랜덤 게시물
+    @Transactional(readOnly = true)
     public List<BoardResponseDto> getRandomBoardsAll() {
         List<BoardResponseDto> all = boardRepository.findAll().stream()
                 .map(this::toDto)
@@ -227,13 +240,27 @@ public class BoardService {
         BoardResponseDto dto = new BoardResponseDto();
         dto.setId(boardEntity.getId());
         dto.setTitle(boardEntity.getTitle());
-        dto.setContent(null); // 필요하다면 BoardEntity.getContent()를 넣을 수 있습니다.
-        dto.setAuthorName(boardEntity.getMember().getName());
-        dto.setCreatedAt(boardEntity.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-        dto.setAudioUrl(boardEntity.getMusic().getAudioUrl());
-        dto.setImageUrl(boardEntity.getMusic().getImageUrl());
-        dto.setAuthor(false); // 인증 정보가 필요한 경우, Controller에서 별도 처리
         dto.setViews(boardEntity.getViews());
+        dto.setAuthor(false);
+
+        if (boardEntity.getMember() != null) {
+            dto.setAuthorName(boardEntity.getMember().getName());
+        }
+
+        if (boardEntity.getCreatedAt() != null) {
+            dto.setCreatedAt(boardEntity.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+        }
+
+        if (boardEntity.getMusic() != null) {
+            dto.setMusicTitle(boardEntity.getMusic().getTitle());
+            dto.setAudioUrl(boardEntity.getMusic().getAudioUrl());
+            dto.setImageUrl(boardEntity.getMusic().getImageUrl());
+
+            if (dto.getTitle() == null || dto.getTitle().isBlank()) {
+                dto.setTitle(dto.getMusicTitle());
+            }
+        }
+
         return dto;
     }
 }

@@ -44,7 +44,7 @@ public class YoutubeService {
         Member member = memberRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저 없음"));
 
-        String stateJwt = jwtTokenProvider.createToken(member.getLoginId());
+        String stateJwt = jwtTokenProvider.createAccessToken(member.getLoginId());
 
         return UriComponentsBuilder.fromHttpUrl("https://accounts.google.com/o/oauth2/v2/auth")
                 .queryParam("client_id", CLIENT_ID)

@@ -6,6 +6,7 @@ import com.example.study3.security.jwt.JwtTokenProvider;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -28,6 +29,7 @@ public class CustomAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
+    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication)
@@ -58,13 +60,20 @@ public class CustomAuth2SuccessHandler implements AuthenticationSuccessHandler {
             return memberRepository.save(newMember);
         });
 
+
         // JWT 토큰 생성
-        String token = jwtTokenProvider.createToken(loginId);
+        String accessToken = jwtTokenProvider.createAccessToken(user.getLoginId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId());
+
+        //DB에 RefreshToken 저장
+        user.updateRefreshToken(refreshToken);
+        memberRepository.save(user);
 
         if(user.getAge() == null || user.getGender() == null || user.getCountry() == null) {
             String redirectUrl = UriComponentsBuilder
                     .fromUriString("http://localhost:5173/social-extra")
-                    .queryParam("token", token)  // 여기에 token 추가
+                    .queryParam("accessToken", accessToken)
+                    .queryParam("refreshToken", refreshToken)
                     .queryParam("name", URLEncoder.encode(user.getName(), StandardCharsets.UTF_8))
                     .build()
                     .toUriString();
@@ -74,7 +83,8 @@ public class CustomAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         // 리다이렉트할 URL (프론트에 토큰 전달)
         String redirectUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/oauth-success")
-                .queryParam("token", token)
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", refreshToken)
                 .queryParam("name", URLEncoder.encode(user.getName(), StandardCharsets.UTF_8))
                 .build()
                 .toUriString();
