@@ -42,6 +42,7 @@ public class AuthController {
         return authService.logout(request);
     }
 
+    //refresToken으로 accessToken 재발급
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(@RequestBody Map<String, String> body) {
         String refreshToken = body.get("refreshToken");

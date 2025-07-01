@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +65,23 @@ public class MemberService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
         member.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        memberRepository.save(member);
+    }
+
+    public void updateExtra(MemberDto dto, Authentication authentication) {
+        if (authentication == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰 없음");
+        }
+
+        String loginId = authentication.getName();
+
+        Member member = memberRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+
+        member.setAge(dto.getAge());
+        member.setGender(dto.getGender());
+        member.setCountry(dto.getCountry());
+
         memberRepository.save(member);
     }
 }

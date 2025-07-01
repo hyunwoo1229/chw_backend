@@ -27,28 +27,11 @@ public class MemberController {
         return memberService.register(dto);
     }
 
+    //소셜 로그인 후 추가 정보 저장
     @PostMapping("/update-extra")
     public ResponseEntity<?> updateExtra(@RequestBody MemberDto dto, Authentication authentication) {
 
-        System.out.println("🔥 진입 성공");
-
-        if (authentication == null) {
-            System.out.println("❌ 인증 정보 없음");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰 없음");
-        }
-
-        System.out.println("✅ 인증된 사용자: " + authentication.getName());
-
-        String loginId = authentication.getName();
-
-        Member member = memberRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
-
-        member.setAge(dto.getAge());
-        member.setGender(dto.getGender());
-        member.setCountry(dto.getCountry());
-        memberRepository.save(member);
-
+        memberService.updateExtra(dto, authentication);
         return ResponseEntity.ok(new SuccessResponse("추가 정보 업데이트 완료"));
     }
 

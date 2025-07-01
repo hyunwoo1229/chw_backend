@@ -71,7 +71,6 @@ public class JwtTokenProvider {
             // 이 예외는 보통 토큰이 비어있거나(null) 형식이 아닐 때 발생합니다.
             System.err.println("JWT claims string is empty: " + e.getMessage());
         }
-        // ------------------------------------------------
         return false;
     }
 

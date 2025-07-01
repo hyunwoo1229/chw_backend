@@ -43,7 +43,7 @@ public class ChatGptService {
         if (!hasSystemMessages) {
             messages.add(0, new MessageDto("system",
                     "너는 작곡가야. 사용자와 대화하며 곡의 분위기, 장르, 스타일, 가사를 함께 정하고 사용자가 원하는 노래 스타일과 가사, 장르를 잘 만들어줘." +
-                            " 가사는 1500자 이하 2분 분량 정도로 만들어야 돼. "));
+                            " 가사는 1500자 이하 2분 분량 정도로 만들어야 돼. 그리고 무조건 존댓말로 얘기해"));
         }
 
         // 요청 바디 구성: 모델과 메시지 목록
@@ -101,15 +101,16 @@ public class ChatGptService {
         openAiMessages.add(Map.of(
                 "role", "user",
                 "content", "이제 대화는 끝났어. 지금까지 대화 내용을 바탕으로 아래 형식과 정확히 동일한 순수 JSON을 생성해줘. " +
-                        "``` 등의 코드블럭 없이 순수한 JSON 텍스트만 생성해. prompt 부분에는 반드시 1500자 이하로 2분 정도 분량의 가사를 넣어야 해." +
+                        "반드시 지금까지의 대화 내용을 기반으로 작성해야돼 임의로 너가 추가하거나 삭제하는 내용이 절대 없어야 돼" +
+                        "``` 등의 코드블럭 없이 순수한 JSON 텍스트만 생성해. prompt 부분에는 반드시 300자 이하로 1분 30초정도 분량의 가사를 넣어야 해." + //1500자까지 가능
                         "다른 부가 설명이나 코드 블록 없이 오직 JSON만 출력해줘:\n" +
                         "{\n" +
-                        "  \"prompt\": \"<300자 이하의 2분 분량의 가사>\",\n" +
+                        "  \"prompt\": \"<300자 이하의 1분 30초 분량의 가사, 반드시 아까와의 대화로 만든 가사를 그대로 넣어야 돼 절대 새로 넣지 마>\",\n" +
                         "  \"style\": \"<음악 스타일, 예: Classical, Jazz 등>\",\n" +
                         "  \"title\": \"<노래 제목>\",\n" +
                         "  \"customMode\": true,\n" +
                         "  \"instrumental\": false,\n" +
-                        "  \"model\": \"V3_5\",\n" +
+                        "  \"model\": \"V4_5\",\n" +
                         "  \"negativeTags\": \"<제외할 태그, 예: Heavy Metal, Upbeat Drums>\",\n" +
                         "  \"callBackUrl\": \"<https://8e24-121-165-35-251.ngrok-free.app/api/suno/callback?taskid=~~>\"\n" +
                         "}"
